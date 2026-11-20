@@ -96,6 +96,7 @@ export function printMenu(state: MenuState): void {
     ["3", "Buscar y agregar ciudad"],
     ["4", "Eliminar ciudad"],
     ["5", "Establecer ciudad default"],
+    ["7", "Pronóstico 7 días (todas)"],
     ["8", `Ajustes (${unitSymbol(state.unit)})`],
     ["9", "Salir"],
   ];

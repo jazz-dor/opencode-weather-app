@@ -1,5 +1,5 @@
 import { stdout } from "node:process";
-import { fetchCurrentWeather, geocodeCity } from "./api.ts";
+import { fetchCurrentWeather, fetchDailyForecast, geocodeCity } from "./api.ts";
 import type { City, Unit } from "./api.ts";
 import { green, red } from "./colors.ts";
 import { loadConfig, saveConfig } from "./config.ts";
@@ -10,7 +10,7 @@ import {
   printMenu,
   unitSymbol,
 } from "./ui.ts";
-import { cityLabel, formatWeather } from "./weather.ts";
+import { cityLabel, formatDailyForecast, formatWeather } from "./weather.ts";
 
 async function waitEnter(): Promise<void> {
   await ask("\n  Presiona Enter para continuar...");
@@ -24,6 +24,19 @@ async function printWeather(city: City, unit: Unit): Promise<void> {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     stdout.write(red(`  Error obteniendo clima de ${city.name}: ${msg}\n`));
+  }
+}
+
+async function printDailyForecast(city: City, unit: Unit): Promise<void> {
+  try {
+    const forecast = await fetchDailyForecast(city, unit);
+    stdout.write(`  ${cityLabel(city)}\n`);
+    stdout.write(formatDailyForecast(forecast));
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    stdout.write(
+      red(`  Error obteniendo pronóstico de ${city.name}: ${msg}\n`),
+    );
   }
 }
 
@@ -155,6 +168,19 @@ export async function main(): Promise<void> {
           config.defaultCity = target.name;
           await saveConfig(config);
           stdout.write(green(`\n  Ciudad default: ${target.name}\n`));
+          break;
+        }
+
+        case "7": {
+          if (config.cities.length === 0) {
+            stdout.write(red("\n  No hay ciudades guardadas.\n"));
+            break;
+          }
+          stdout.write("\n");
+          for (const city of config.cities) {
+            await printDailyForecast(city, config.unit);
+            stdout.write("\n");
+          }
           break;
         }
 

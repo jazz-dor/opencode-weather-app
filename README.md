@@ -69,6 +69,10 @@ La configuración se guarda en `weather-config.json`, en el **directorio de trab
 
 La opción **8. Ajustes** alterna entre **°C** y **°F**. La unidad activa se muestra en el menú (`Ajustes (°C)` / `Ajustes (°F)`) y se persiste en la configuración.
 
+## Pronóstico de 7 días
+
+La opción **7. Pronóstico 7 días (todas)** muestra el pronóstico diario para todas las ciudades guardadas: máximo/mínimo de temperatura, condición y probabilidad de lluvia. Usa los datos diarios de OpenMeteo (`forecast_days=7`, `timezone=auto`) en la unidad activa.
+
 ### Ejemplo del menú
 Esta es la apariencia que deseamos crear
 
@@ -81,6 +85,7 @@ Esta es la apariencia que deseamos crear
   3. Buscar y agregar ciudad
   4. Eliminar ciudad
   5. Establecer ciudad default
+  7. Pronóstico 7 días (todas)
   8. Ajustes (°C)
   9. Salir
 ════════════════════════════════════════

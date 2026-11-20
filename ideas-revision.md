@@ -5,7 +5,7 @@
 - [ ] **Ciudades:** geocoding solo trae 1 resultado; nombres ambiguos pueden fallar.
 - [ ] **Tests:** no existen; conviene al menos probar storage y las APIs con mocks.
 - [ ] **Binario:** compila bien; revisar que `./weather` guarde datos en `~/.config/weather-cli/`.
-- [ ] **7 day forecast:** agregar la posibilidad de obtener el pronóstico del clima para los próximos 7 días.
+- [x] **7 day forecast:** agregar la posibilidad de obtener el pronóstico del clima para los próximos 7 días.
 
 ## CheckList adicional de revisión:
 
