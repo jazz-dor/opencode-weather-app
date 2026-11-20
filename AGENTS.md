@@ -1,12 +1,17 @@
 # AGENTS.md
 
-Weather CLI in **Bun + TypeScript** (Spanish UI). Early prototype — a flat 3-file app, not a layered `src/` project. Do not assume structure the repo does not have.
+Weather CLI in **Bun + TypeScript** (Spanish UI). Organized by feature (Screaming Architecture): each top-level folder under `src/` names a domain (`weather/`, `cities/`, `settings/`), plus `cli/` (console interaction) and `shared/` (cross-cutting utils).
 
 ## Layout
 
-- `index.ts` — entrypoint: readline menu loop (`node:readline/promises` against `node:process` streams), all UI.
-- `api.ts` — `City`/`Config`/`Unit` types + OpenMeteo calls (`geocodeCity`, `fetchCurrentWeather`).
-- `config.ts` — load/save of the persisted config JSON.
+- `index.ts` (root) — thin entrypoint: `import { main } from "./src/index.ts"`.
+- `src/index.ts` — main menu loop and dispatch to feature actions.
+- `src/weather/` — `getWeather.ts`, `showDailyForecast.ts` (+ per-city helpers `getWeatherForCity`, `showDailyForecastForCity`), `api.ts` (`fetchCurrentWeather`, `fetchDailyForecast`), `format.ts` (`describeWeatherCode`, `formatWeather`, `formatDailyForecast`), `types.ts`.
+- `src/cities/` — `addCity.ts`, `removeCity.ts`, `setDefaultCity.ts`, `listCities.ts`, `geocoding.ts` (`geocodeCity`), `storage.ts` (`loadCities`/`saveCities`, `isValidCity`), `label.ts` (`cityLabel`), `types.ts` (`City`, `Unit`).
+- `src/settings/` — `toggleUnit.ts`, `storage.ts` (`loadConfig`/`saveConfig`/`saveSettings`), `types.ts` (`Config`).
+- `src/cli/` — `menu.ts` (`printMenu`, `MenuState`), `input.ts` (`LineReader`, `ask`, `pickCity`, `closeInput`), `output.ts` (mensajes éxito/error, `clearScreen`, `formatCityList`, `unitSymbol`).
+- `src/shared/` — `colors.ts`, `constants.ts` (`WIDTH`, `LINE`, URLs, `CONFIG_FILENAME`).
+- Older layer-based folders (`src/actions/`, `src/presentation/`, `src/storage/`, `src/types/`, `src/api/`, `src/utils/`) and legacy flat files (`src/main.ts`, `src/api.ts`, `src/config.ts`, `src/ui.ts`, `src/weather.ts`, `src/colors.ts`) are **left intact** but unused by the current entrypoint.
 - `bun-instructions.md` — generic Cursor/Bun rules; mostly irrelevant here (frontend, `Bun.serve`, sqlite, HTML imports). Ignore unless the task needs it.
 
 ## Runtime: Bun, not Node

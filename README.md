@@ -44,13 +44,15 @@ bun build --compile index.ts --outfile weather
 ## Estructura
 
 ```
-index.ts        Entrypoint delgado: arranca src/main.ts
+index.ts              Entrypoint delgado: arranca src/index.ts
 src/
-  main.ts       Bucle principal del menú
-  api.ts        Tipos (City/Config/Unit) y llamadas a OpenMeteo
-  config.ts     Carga y guardado de la configuración
-  weather.ts    Descripción de códigos WMO (español) y formato del clima
-  ui.ts         Menú, entrada de usuario y utilidades de consola
+  index.ts            Bucle principal del menú y dispatch a features
+  weather/            Feature clima: getWeather, showDailyForecast, api, format, types
+  cities/             Feature ciudades: addCity, removeCity, setDefaultCity,
+                      listCities, geocoding, storage, label, types
+  settings/           Feature ajustes: toggleUnit, storage (config), types
+  cli/                Interacción CLI: menu, input, output
+  shared/             Utilidades transversales: colors, constants
 ```
 
 ## Configuración
