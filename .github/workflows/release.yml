@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: weather-windows.exe
+            binary: weather.exe
+          - os: ubuntu-latest
+            artifact: weather-linux
+            binary: weather
+          - os: macos-latest
+            artifact: weather-macos-arm64
+            binary: weather
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: echo "version=$(bun -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Build binary
+        run: bun run build
+
+      - name: Rename binary
+        shell: bash
+        env:
+          BINARY: ${{ matrix.binary }}
+          ARTIFACT: ${{ matrix.artifact }}
+        run: |
+          mkdir -p dist
+          mv "$BINARY" "dist/$ARTIFACT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Read version
+        id: version
+        run: echo "version=$(bun -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git fetch --tags
+          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download artifacts
+        if: steps.tag.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
+        if: steps.tag.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" \
+            dist/weather-windows.exe \
+            dist/weather-linux \
+            dist/weather-macos-arm64 \
+            --title "v$VERSION" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
