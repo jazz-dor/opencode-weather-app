@@ -1,52 +1,33 @@
 # AGENTS.md
 
-Weather CLI in **Bun + TypeScript** (Spanish UI). Organized by feature (Screaming Architecture): each top-level folder under `src/` names a domain (`weather/`, `cities/`, `settings/`), plus `cli/` (console interaction) and `shared/` (cross-cutting utils).
+**Asteroids** — HTML5 canvas arcade clone, vanilla JS, no framework/bundler/deps. The actual app is `index.html` + `game.js`. Everything under `src/` and `test/` is a **stale Weather CLI** from a previous project that still lives in the repo (tests pass, but the CLI is not wired to anything runnable).
 
-## Layout
+## What's live vs. stale
 
-- `index.ts` (root) — thin entrypoint: `import { main } from "./src/index.ts"`.
-- `src/index.ts` — main menu loop and dispatch to feature actions.
-- `src/weather/` — `getWeather.ts`, `showDailyForecast.ts` (+ per-city helpers `getWeatherForCity`, `showDailyForecastForCity`), `api.ts` (`fetchCurrentWeather`, `fetchDailyForecast`), `format.ts` (`describeWeatherCode`, `formatWeather`, `formatDailyForecast`), `types.ts`.
-- `src/cities/` — `addCity.ts`, `removeCity.ts`, `setDefaultCity.ts`, `listCities.ts`, `geocoding.ts` (`geocodeCity`), `storage.ts` (`loadCities`/`saveCities`, `isValidCity`), `label.ts` (`cityLabel`), `types.ts` (`City`, `Unit`).
-- `src/settings/` — `toggleUnit.ts`, `storage.ts` (`loadConfig`/`saveConfig`/`saveSettings`), `types.ts` (`Config`).
-- `src/cli/` — `menu.ts` (`printMenu`, `MenuState`), `input.ts` (`LineReader`, `ask`, `pickCity`, `closeInput`), `output.ts` (mensajes éxito/error, `clearScreen`, `formatCityList`, `unitSymbol`).
-- `src/shared/` — `colors.ts`, `constants.ts` (`WIDTH`, `LINE`, URLs, `CONFIG_FILENAME`).
-- Older layer-based folders (`src/actions/`, `src/presentation/`, `src/storage/`, `src/types/`, `src/api/`, `src/utils/`) and legacy flat files (`src/main.ts`, `src/api.ts`, `src/config.ts`, `src/ui.ts`, `src/weather.ts`, `src/colors.ts`) are **left intact** but unused by the current entrypoint.
-- `bun-instructions.md` — generic Cursor/Bun rules; mostly irrelevant here (frontend, `Bun.serve`, sqlite, HTML imports). Ignore unless the task needs it.
+- **Live (Asteroids):** `index.html`, `game.js`, `favicon.svg/favicon.svg`, `README.md`.
+- **Stale (Weather CLI):** `src/**` (Bun + TS), `test/**`, `references/file-system.md`, `ideas-revision.md`, `bun-instructions.md`, root `tsconfig.json`, `package.json` scripts, `.github/workflows/release.yml`. Do not assume these describe the game.
+- `package.json` is still named `02-weather`; its `main`/`module` points at `index.ts` which **does not exist**. `bun run start`/`bun run build` fail.
+- When asked to change the game, edit `game.js`/`index.html`. Don't "fix" the weather CLI unless the task is about it.
 
-## Runtime: Bun, not Node
+## Running the game
 
-Use Bun for everything; never add `node`, `npm`, `pnpm`, `yarn`, `ts-node`, or `dotenv`. Imports of `node:*` builtins are fine.
+- Open `index.html` in a browser (double-click works), or serve the folder. No build step.
+- Canvas is fixed **800×600** (`index.html`); `game.js` hardcodes `W=800`, `H=600` — keep them in sync if you change the size.
+- Space is toroidal: everything wraps via `wrap()` (`game.js:27`); new entities must use it.
 
-- Run: `bun run index.ts`
-- Install: `bun install`
-- Compile a standalone binary: `bun build --compile index.ts --outfile weather` (produces `weather.exe` on Windows)
-- bun auto-loads `.env` — no dotenv loader.
+## `game.js` structure (single file, top-to-bottom)
 
-## Commands / verification gotchas
+Input (`keys`/`justPressed`/`pressed`) → utils → classes `Bullet`, `Asteroid`, `Ship`, `Particle` → game state (`state = 'playing' | 'dead' | 'gameover'`) → `update(dt)` → `draw()`/HUD → `requestAnimationFrame` loop. Timestep is clamped to `0.05s` (`game.js:415`). Asteroid size constants `RADII`/`SPEEDS`/`POINTS` are indexed by size `1,2,3` with index `0` as a dummy (`game.js:61`). No tests cover `game.js`.
 
-- There is **no test suite** (`bun test` finds 0 files) and **no build script**. Don't expect `bun run build`; it does not exist.
-- `package.json` `typecheck` script is `bun check`. **In this environment it currently fails**: `@types/bun` and `typescript` install as empty stub dirs under `node_modules` (OneDrive path), so `bun check` / `bunx tsc --noEmit` error with `Cannot find type definition file for 'bun'`. This is an environment/install issue, not a code bug — don't "fix" it by editing tsconfig. Verify changes by running the app; if typecheck is needed, a clean checkout outside OneDrive usually resolves the stubs.
-- Manual smoke test: `echo "9" | bun run index.ts` prints the menu and exits via "Salir".
+## Weather CLI (only if the task targets it)
 
-## Config persistence (differs from what you might guess)
-
-- Single file `weather-config.json`, written **next to the running executable** (`dirname(process.execPath)`), **not** under `~/.config` and not `data.json`.
-- Shape: `{ cities: City[], defaultCity: string|null, unit: "celsius"|"fahrenheit" }`. It is user data (may not exist yet) — do **not** commit it; it is not currently in `.gitignore`, so add it before committing if generated.
-
-## TypeScript constraints (tsconfig)
-
-- `.ts` extension required in relative imports (`allowImportingTsExtensions` + `verbatimModuleSyntax`); type-only imports must use `import type`.
-- Strict + `noUncheckedIndexedAccess` + `noImplicitOverride`; `types: ["bun"]` (do not add `@types/node`). `noEmit: true`.
-
-## API flow (OpenMeteo, no key)
-
-1. Geocoding: `https://geocoding-api.open-meteo.com/v1/search?name=<city>&count=1&language=es&format=json`
-2. Forecast: `https://api.open-meteo.com/v1/forecast?latitude=<lat>&longitude=<lon>&current=temperature_2m&temperature_unit=<unit>`
-
-Errors throw `Error` with Spanish messages; the menu catches them per-iteration.
+- Runtime is **Bun** (`bun install`, `bun test`); never `node`/`npm`/`yarn`/`dotenv`. Entry is `src/index.ts` (root `index.ts` referenced by scripts is absent).
+- Tests: `bun test` → 85 passing across 13 files. Support helpers in `test/support/` (`mockFetch`, `withTempCwd`, fixtures). Config file is `weather-config.json` in **`process.cwd()`** (`src/settings/storage.ts:8`) — not next to the executable; `withTempCwd` relies on that.
+- `bun check` (the `typecheck` path) is **broken here**: `@types/bun` installs as a stub (only `package.json`, no `index.d.ts`), so tsc errors `Cannot find type definition file for 'bun'`. This is an install/OneDrive issue — don't edit `tsconfig.json` to work around it.
+- Legacy layer folders (`src/actions`, `src/presentation`, `src/storage`, `src/types`, `src/api`, `src/utils`) and flat files (`src/main.ts`, `src/api.ts`, `src/config.ts`, `src/ui.ts`, `src/weather.ts`, `src/colors.ts`) are unused; the live feature code is `src/{cities,weather,settings,cli,shared}`.
 
 ## Conventions
 
-- User-facing strings and `README.md` are in Spanish — match that.
-- Menu has intentionally non-contiguous options (1–5, then 8 Ajustes, 9 Salir).
+- UI text and `README.md` are Spanish — match it.
+- `.ts` extension required in relative imports (`allowImportingTsExtensions`); type-only imports use `import type`.
+- Commit messages in the history are generic (`Guardar todos los cambios`); don't infer a strict format from them.
