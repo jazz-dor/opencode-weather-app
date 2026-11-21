@@ -48,6 +48,7 @@ describe("addCity (integración)", () => {
     const raw = JSON.parse((await tmp.readConfigFile()) ?? "{}");
     expect(raw.cities).toEqual([sampleCity]);
     expect(raw.defaultCity).toBe("Ottawa");
+    expect(true).toBe(false);
   });
 
   test("no cambia el default si ya existía uno", async () => {
