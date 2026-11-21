@@ -1,95 +1,45 @@
-## Weather CLI APP
+# Asteroids
 
-El objetivo de esta aplicación es que creemos una aplicación de consola que pida que ingresemos la ciudad, Al final, generaremos un binario ejecutable.
+Clon del clásico arcade **Asteroids** implementado en canvas HTML5 puro, sin dependencias ni bundler.
 
-### Opciones:
+## Descripción
 
-- Ingresar el nombre de una ciudad.
-- Guardar la ciudad por defecto.
-- Registrar varias otras ciudades para buscar el clima en esas otras ciudades.
+Nave espacial en un campo de asteroides con envolvimiento de bordes (el espacio es toroidal). Destruye asteroides para sumar puntos: los grandes se parten en medianos, los medianos en pequeños. Incluye power-ups especiales y tipos de asteroides únicos como la estrella fugaz.
 
-## Stack
+## Tecnologías
 
-- Bun.js
-- OpenMeteo
+- **HTML5 Canvas** — renderizado 2D
+- **JavaScript (ES6+)** — lógica del juego en un solo archivo `game.js`
+- Sin frameworks, sin bundler, sin dependencias
 
-## Ejemplo de petición http:
+## Cómo correr
 
-1. Paso 1: Geocoding API.
-2. Paso 2: OpenMeteo API.
-
-```
-https://geocoding-api.open-meteo.com/v1/search?name=Ottawa&count=1&language=es&format=json
-https://api.open-meteo.com/v1/forecast?latitude=45.41117&longitude=-75.69812&current=temperature_2m
-```
-
-## Inicializar proyecto
+Abre `index.html` directamente en el navegador (doble clic), o usa un servidor local:
 
 ```bash
-bun install
+npx serve .
 ```
 
-## Uso
+Luego visita `http://localhost:3000`.
 
-```bash
-bun run index.ts
-```
+## Controles
 
-Compilar un binario ejecutable:
+| Tecla     | Acción     |
+| --------- | ---------- |
+| `←` `→`   | Rotar nave |
+| `↑`       | Propulsar  |
+| `Espacio` | Disparar   |
 
-```bash
-bun build --compile index.ts --outfile weather
-```
+## Puntuación
 
-## Estructura
+| Asteroide | Puntos |
+| --------- | ------ |
+| Grande    | 20     |
+| Mediano   | 50     |
+| Pequeño   | 100    |
 
-```
-index.ts              Entrypoint delgado: arranca src/index.ts
-src/
-  index.ts            Bucle principal del menú y dispatch a features
-  weather/            Feature clima: getWeather, showDailyForecast, api, format, types
-  cities/             Feature ciudades: addCity, removeCity, setDefaultCity,
-                      listCities, geocoding, storage, label, types
-  settings/           Feature ajustes: toggleUnit, storage (config), types
-  cli/                Interacción CLI: menu, input, output
-  shared/             Utilidades transversales: colors, constants
-```
+## Características
 
-## Configuración
-
-La configuración se guarda en `weather-config.json`, en el **directorio de trabajo actual (cwd)** del proyecto donde se ejecuta la app:
-
-```json
-{
-  "cities": [{ "name": "Ottawa", "country": "Canadá", "admin1": "Ontario", "latitude": 45.41117, "longitude": -75.69812 }],
-  "defaultCity": "Ottawa",
-  "unit": "celsius"
-}
-```
-
-## Unidades de temperatura
-
-La opción **8. Ajustes** alterna entre **°C** y **°F**. La unidad activa se muestra en el menú (`Ajustes (°C)` / `Ajustes (°F)`) y se persiste en la configuración.
-
-## Pronóstico de 7 días
-
-La opción **7. Pronóstico 7 días (todas)** muestra el pronóstico diario para todas las ciudades guardadas: máximo/mínimo de temperatura, condición y probabilidad de lluvia. Usa los datos diarios de OpenMeteo (`forecast_days=7`, `timezone=auto`) en la unidad activa.
-
-### Ejemplo del menú
-Esta es la apariencia que deseamos crear
-
-```bash
-════════════════════════════════════════
-         WEATHER CLI
-════════════════════════════════════════
-  1. Clima de ciudad default
-  2. Clima de todas las ciudades (1)
-  3. Buscar y agregar ciudad
-  4. Eliminar ciudad
-  5. Establecer ciudad default
-  7. Pronóstico 7 días (todas)
-  8. Ajustes (°C)
-  9. Salir
-════════════════════════════════════════
-  Selecciona una opción: 5
-```
+- 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
+- Asteroides se parten en fragmentos más pequeños al ser destruidos
+- Partículas de explosión al destruir asteroides
