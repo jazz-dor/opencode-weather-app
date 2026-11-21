@@ -43,3 +43,4 @@ Luego visita `http://localhost:3000`.
 - 3 vidas con invencibilidad temporal al reaparecer (parpadeo)
 - Asteroides se parten en fragmentos más pequeños al ser destruidos
 - Partículas de explosión al destruir asteroides
+- Power-up **Velocidad**: un ítem flotante (rayo cian) aparece cada cierto tiempo; si lo atrapas, tu propulsión es el doble de potente durante 5 segundos
