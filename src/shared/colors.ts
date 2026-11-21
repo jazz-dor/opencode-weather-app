@@ -2,15 +2,16 @@ import { stdout } from "node:process";
 
 const ESC = "\x1b[";
 
-const enabled =
-  Boolean(stdout.isTTY) && !("NO_COLOR" in process.env);
+function isEnabled(): boolean {
+  return Boolean(stdout.isTTY) && !("NO_COLOR" in process.env);
+}
 
 function wrap(code: number, text: string): string {
-  return enabled ? `${ESC}${code}m${text}${ESC}0m` : text;
+  return isEnabled() ? `${ESC}${code}m${text}${ESC}0m` : text;
 }
 
 function wrap256(code: number, text: string): string {
-  return enabled ? `${ESC}38;5;${code}m${text}${ESC}0m` : text;
+  return isEnabled() ? `${ESC}38;5;${code}m${text}${ESC}0m` : text;
 }
 
 export const white = (text: string): string => wrap(37, text);

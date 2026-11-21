@@ -1,4 +1,7 @@
 import { describe, expect, test } from "bun:test";
+
+process.env.NO_COLOR = "1";
+
 import {
   describeWeatherCode,
   formatDailyForecast,
