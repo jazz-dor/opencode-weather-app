@@ -29,6 +29,8 @@ Luego visita `http://localhost:3000`.
 | `←` `→`   | Rotar nave |
 | `↑`       | Propulsar  |
 | `Espacio` | Disparar   |
+| `S`       | Cambiar skin |
+| `Shift`   | Escudo     |
 
 ## Puntuación
 
@@ -44,3 +46,6 @@ Luego visita `http://localhost:3000`.
 - Asteroides se parten en fragmentos más pequeños al ser destruidos
 - Partículas de explosión al destruir asteroides
 - Power-up **Velocidad**: un ítem flotante (rayo cian) aparece cada cierto tiempo; si lo atrapas, tu propulsión es el doble de potente durante 5 segundos
+- **Triple Shot**: durante los primeros 5 segundos de cada vida/nivel, la nave dispara 3 balas en abanico (centro y ±15°) en lugar de una sola
+- **Skins de nave**: 4 apariencias (Clásica, Neón, Cazador, Fantasma) que cambian silueta, color y llama; pulsa `S` durante la partida y tu elección se recuerda en el navegador
+- **Escudo**: mantén `Shift` para desplegar un campo de energía que absorbe las estrellas fugaces (proyectiles enemigos). Consume energía mientras lo usas y se regenera al soltarlo; la barra se muestra en el HUD. No protege de los asteroides
