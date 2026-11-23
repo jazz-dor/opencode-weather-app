@@ -293,12 +293,12 @@ class ShootingStar {
   constructor(x, y, angle) {
     this.x = x;
     this.y = y;
-    const speed = rand(700, 900);
+    const speed = rand(300, 450);
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
     this.angle = angle;
     this.radius = 10;
-    this.life = rand(1.2, 1.8);
+    this.life = rand(2.0, 3.0);
     this.ttl = this.life;
     this.dead = false;
   }
