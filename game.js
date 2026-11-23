@@ -335,13 +335,28 @@ class ShootingStar {
     ctx.lineTo(this.x - dx * tail, this.y - dy * tail);
     ctx.stroke();
 
-    // Núcleo brillante rojo
+    // Estrella roja de 5 puntas, orientada hacia la dirección de avance
+    const R1 = 11;
+    const R2 = 4.5;
+    const spikes = 5;
+    const rot = this.angle + Math.PI / 2;
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(rot);
     ctx.shadowColor = 'rgba(255,42,42,0.9)';
     ctx.shadowBlur = 10;
-    ctx.fillStyle = `rgba(255,60,60,${alpha.toFixed(2)})`;
+    ctx.fillStyle = `rgba(255,50,50,${alpha.toFixed(2)})`;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    for (let i = 0; i < spikes * 2; i++) {
+      const r = i % 2 === 0 ? R1 : R2;
+      const a = (i / (spikes * 2)) * Math.PI * 2 - Math.PI / 2;
+      const px = Math.cos(a) * r;
+      const py = Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
     ctx.fill();
+    ctx.restore();
 
     ctx.restore();
   }
@@ -390,7 +405,7 @@ function spawnShootingStar() {
     angle = rand(0.15, 0.5);
   }
   shootingStars.push(new ShootingStar(x, y, angle));
-  starTimer = 10 + rand(-3, 3);
+  starTimer = 5;
 }
 
 function initGame() {
@@ -401,7 +416,7 @@ function initGame() {
   powerups  = [];
   shootingStars = [];
   powerupTimer = 15;
-  starTimer    = 10 + rand(0, 10);
+  starTimer    = 5;
   score  = 0;
   lives  = 3;
   level  = 1;
@@ -415,7 +430,7 @@ function nextLevel() {
   particles = [];
   powerups  = [];
   shootingStars = [];
-  starTimer = 10 + rand(0, 10);
+  starTimer = 5;
   ship.reset();
   spawnAsteroids(3 + level);
 }
