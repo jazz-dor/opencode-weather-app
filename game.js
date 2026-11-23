@@ -286,9 +286,70 @@ class PowerUp {
   }
 }
 
+// ── Estrella fugaz (enemigo) ──────────────────────────────────────────────────
+const STAR_POINTS = 250;
+
+class ShootingStar {
+  constructor(x, y, angle) {
+    this.x = x;
+    this.y = y;
+    const speed = rand(700, 900);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.angle = angle;
+    this.radius = 10;
+    this.life = rand(1.2, 1.8);
+    this.ttl = this.life;
+    this.dead = false;
+  }
+
+  update(dt) {
+    this.x = wrap(this.x + this.vx * dt, W);
+    this.y = wrap(this.y + this.vy * dt, H);
+    this.ttl -= dt;
+    if (this.ttl <= 0) this.dead = true;
+  }
+
+  draw() {
+    const alpha = Math.max(0, this.ttl / this.life);
+    const dx = Math.cos(this.angle);
+    const dy = Math.sin(this.angle);
+    const tail = 46;
+
+    ctx.save();
+    ctx.lineCap = 'round';
+
+    // Rastro nacarado (rojo -> blanco)
+    const grad = ctx.createLinearGradient(
+      this.x, this.y,
+      this.x - dx * tail, this.y - dy * tail
+    );
+    grad.addColorStop(0, `rgba(255,255,255,${(alpha * 0.95).toFixed(2)})`);
+    grad.addColorStop(0.5, `rgba(255,120,120,${(alpha * 0.6).toFixed(2)})`);
+    grad.addColorStop(1, `rgba(255,42,42,0)`);
+
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - dx * tail, this.y - dy * tail);
+    ctx.stroke();
+
+    // Núcleo brillante rojo
+    ctx.shadowColor = 'rgba(255,42,42,0.9)';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = `rgba(255,60,60,${alpha.toFixed(2)})`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
 // ── Estado del juego ──────────────────────────────────────────────────────────
-let ship, bullets, asteroids, particles, powerups;
-let powerupTimer;
+let ship, bullets, asteroids, particles, powerups, shootingStars;
+let powerupTimer, starTimer;
 let score, lives, level;
 let state;      // 'playing' | 'dead' | 'gameover'
 let deadTimer;
@@ -316,13 +377,31 @@ function spawnPowerUp() {
   powerupTimer = 15 + rand(-3, 3);
 }
 
+function spawnShootingStar() {
+  // Origen en el borde superior o izquierdo, rumbo diagonal
+  let x, y, angle;
+  if (Math.random() < 0.5) {
+    x = rand(W * 0.2, W);
+    y = 0;
+    angle = rand(0.6, 1.0) * Math.PI * 0.5 + rand(0.35, 0.7);
+  } else {
+    x = 0;
+    y = rand(0, H * 0.6);
+    angle = rand(0.15, 0.5);
+  }
+  shootingStars.push(new ShootingStar(x, y, angle));
+  starTimer = 10 + rand(-3, 3);
+}
+
 function initGame() {
   ship          = new Ship();
   bullets   = [];
   asteroids = [];
   particles = [];
   powerups  = [];
+  shootingStars = [];
   powerupTimer = 15;
+  starTimer    = 10 + rand(0, 10);
   score  = 0;
   lives  = 3;
   level  = 1;
@@ -335,6 +414,8 @@ function nextLevel() {
   bullets   = [];
   particles = [];
   powerups  = [];
+  shootingStars = [];
+  starTimer = 10 + rand(0, 10);
   ship.reset();
   spawnAsteroids(3 + level);
 }
@@ -361,6 +442,8 @@ function update(dt) {
     if (pressed('Space')) initGame();
     particles.forEach(p => p.update(dt));
     particles = particles.filter(p => !p.dead);
+    shootingStars.forEach(s => s.update(dt));
+    shootingStars = shootingStars.filter(s => !s.dead);
     return;
   }
 
@@ -371,6 +454,8 @@ function update(dt) {
     asteroids.forEach(a => a.update(dt));
     powerups.forEach(p => p.update(dt));
     powerups = powerups.filter(p => !p.dead);
+    shootingStars.forEach(s => s.update(dt));
+    shootingStars = shootingStars.filter(s => !s.dead);
     if (deadTimer <= 0) { state = 'playing'; ship.reset(); }
     return;
   }
@@ -390,6 +475,12 @@ function update(dt) {
   particles = particles.filter(p => !p.dead);
   powerups  = powerups.filter(p => !p.dead);
 
+  // Estrella fugaz: 1 a la vez, esporádica
+  shootingStars.forEach(s => s.update(dt));
+  shootingStars = shootingStars.filter(s => !s.dead);
+  starTimer -= dt;
+  if (starTimer <= 0 && shootingStars.length === 0) spawnShootingStar();
+
   // Aparición periódica del power-up "Velocidad"
   powerupTimer -= dt;
   if (powerupTimer <= 0 && powerups.length === 0) spawnPowerUp();
@@ -406,6 +497,14 @@ function update(dt) {
         newAsteroids.push(...a.split());
       }
     }
+    for (const s of shootingStars) {
+      if (!s.dead && !b.dead && dist(b, s) < s.radius) {
+        b.dead = true;
+        s.dead = true;
+        score += STAR_POINTS;
+        explode(s.x, s.y, 10);
+      }
+    }
   }
   asteroids = asteroids.filter(a => !a.dead).concat(newAsteroids);
   bullets   = bullets.filter(b => !b.dead);
@@ -414,6 +513,16 @@ function update(dt) {
   if (ship.invincible <= 0) {
     for (const a of asteroids) {
       if (dist(ship, a) < ship.radius + a.radius * 0.82) {
+        killShip();
+        break;
+      }
+    }
+  }
+
+  // Nave vs estrella fugaz
+  if (ship.invincible <= 0) {
+    for (const s of shootingStars) {
+      if (!s.dead && dist(ship, s) < ship.radius + s.radius) {
         killShip();
         break;
       }
@@ -487,6 +596,7 @@ function draw() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
 
+  shootingStars.forEach(s => s.draw());
   particles.forEach(p => p.draw());
   asteroids.forEach(a => a.draw());
   powerups.forEach(p => p.draw());
