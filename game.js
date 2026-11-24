@@ -123,22 +123,32 @@ const SKINS = [
   {
     id: 'clasica', name: 'Clásica',
     stroke: '#fff', flame: 'rgba(255,130,0,0.85)', boostFlame: 'rgba(80,200,255,0.9)',
+    scale: 1, pointsMult: 1,
     shape: [[20, 0], [-12, -9], [-7, 0], [-12, 9]],
   },
   {
     id: 'neon', name: 'Neón',
     stroke: '#39ff14', flame: 'rgba(57,255,20,0.85)', boostFlame: 'rgba(0,255,200,0.9)',
+    scale: 1, pointsMult: 1,
     shape: [[22, 0], [-10, -11], [-5, 0], [-10, 11]],
   },
   {
     id: 'cazador', name: 'Cazador',
     stroke: '#ff5252', flame: 'rgba(255,190,0,0.9)', boostFlame: 'rgba(255,255,120,0.9)',
+    scale: 1, pointsMult: 1,
     shape: [[24, 0], [2, -6], [-14, -14], [-18, 0], [-14, 14], [2, 6]],
   },
   {
     id: 'fantasma', name: 'Fantasma',
     stroke: '#c77dff', flame: 'rgba(200,120,255,0.8)', boostFlame: 'rgba(120,220,255,0.9)',
+    scale: 1, pointsMult: 1,
     shape: [[18, 0], [-4, -8], [-14, -3], [-9, 0], [-14, 3], [-4, 8]],
+  },
+  {
+    id: 'gigante', name: 'Gigante',
+    stroke: '#9b5cff', flame: 'rgba(140,60,255,0.9)', boostFlame: 'rgba(120,160,255,0.9)',
+    scale: 2, pointsMult: 2,
+    shape: [[20, 0], [-12, -9], [-7, 0], [-12, 9]],
   },
 ];
 
@@ -174,7 +184,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = 12 * currentSkin().scale;
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -251,6 +261,7 @@ class Ship {
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
     const skin = currentSkin();
+    ctx.scale(skin.scale, skin.scale);
     ctx.strokeStyle = skin.stroke;
     ctx.lineWidth   = 1.5;
     ctx.lineJoin    = 'round';
@@ -559,6 +570,10 @@ function explode(x, y, count = 8) {
   for (let i = 0; i < count; i++) particles.push(new Particle(x, y));
 }
 
+function addScore(points) {
+  score += points * currentSkin().pointsMult;
+}
+
 function killShip() {
   explode(ship.x, ship.y, 14);
   ship.dead = true;
@@ -630,7 +645,7 @@ function update(dt) {
       if (!a.dead && !b.dead && dist(b, a) < a.radius) {
         b.dead = true;
         a.dead = true;
-        score += POINTS[a.size];
+        addScore(POINTS[a.size]);
         explode(a.x, a.y, a.size * 5);
         newAsteroids.push(...a.split());
       }
@@ -639,7 +654,7 @@ function update(dt) {
       if (!s.dead && !b.dead && dist(b, s) < s.radius) {
         b.dead = true;
         s.dead = true;
-        score += STAR_POINTS;
+        addScore(STAR_POINTS);
         explode(s.x, s.y, 10);
       }
     }
