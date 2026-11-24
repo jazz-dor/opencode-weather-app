@@ -140,6 +140,12 @@ const SKINS = [
     stroke: '#c77dff', flame: 'rgba(200,120,255,0.8)', boostFlame: 'rgba(120,220,255,0.9)',
     shape: [[18, 0], [-4, -8], [-14, -3], [-9, 0], [-14, 3], [-4, 8]],
   },
+  {
+    id: 'gigante', name: 'Gigante',
+    stroke: '#a020f0', flame: 'rgba(170,40,255,0.85)', boostFlame: 'rgba(210,120,255,0.9)',
+    shape: [[40, 0], [-24, -18], [-14, 0], [-24, 18]],  // el doble de la Clásica
+    scale: 2, pointsMult: 2,
+  },
 ];
 
 function loadSkinIndex() {
@@ -151,11 +157,15 @@ function loadSkinIndex() {
 }
 
 let skinIndex = loadSkinIndex();
-const currentSkin = () => SKINS[skinIndex];
+const currentSkin = () => {
+  const s = SKINS[skinIndex];
+  return { scale: 1, pointsMult: 1, ...s };
+};
 
 function cycleSkin() {
   skinIndex = (skinIndex + 1) % SKINS.length;
   try { localStorage.setItem('asteroids.skin', String(skinIndex)); } catch (_) {}
+  if (ship) ship.radius = 12 * currentSkin().scale;
 }
 
 // ── Ship ──────────────────────────────────────────────────────────────────────
@@ -174,7 +184,7 @@ class Ship {
     this.angle  = -Math.PI / 2;
     this.vx     = 0;
     this.vy     = 0;
-    this.radius = 12;
+    this.radius = 12 * currentSkin().scale;
     this.thrusting     = false;
     this.invincible    = 3;
     this.shootCooldown = 0;
@@ -630,7 +640,7 @@ function update(dt) {
       if (!a.dead && !b.dead && dist(b, a) < a.radius) {
         b.dead = true;
         a.dead = true;
-        score += POINTS[a.size];
+        score += POINTS[a.size] * currentSkin().pointsMult;
         explode(a.x, a.y, a.size * 5);
         newAsteroids.push(...a.split());
       }
@@ -639,7 +649,7 @@ function update(dt) {
       if (!s.dead && !b.dead && dist(b, s) < s.radius) {
         b.dead = true;
         s.dead = true;
-        score += STAR_POINTS;
+        score += STAR_POINTS * currentSkin().pointsMult;
         explode(s.x, s.y, 10);
       }
     }
