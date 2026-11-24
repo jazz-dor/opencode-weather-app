@@ -37,3 +37,6 @@ weather.exe
 
 # Finder (MacOS) folder config
 .DS_Store
+
+# git worktrees
+.worktrees/
