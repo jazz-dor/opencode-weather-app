@@ -35,4 +35,3 @@ jobs:
         with:
           model: openrouter/~deepseek/deepseek-v4-flash-latest
           use_github_token: true
-          version: 1.19.6
